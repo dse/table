@@ -1,0 +1,41 @@
+#!/usr/bin/env perl
+use warnings;
+use strict;
+use v5.10.0;
+
+use Text::ASCIITable;
+use List::Util qw(max);
+use Getopt::Long;
+use Data::Dumper;
+
+our $opt_tabs = 0;
+
+Getopt::Long::Configure(qw(bundling gnu_compat));
+Getopt::Long::GetOptions(
+    "tabs" => \$opt_tabs
+) or die();
+
+###############################################################################
+
+my $data = [];
+
+while (<>) {
+    s{\R\z}{};
+    if ($opt_tabs) {
+        push(@$data, [split("\t")]);
+    } else {
+        push(@$data, [split]);
+    }
+}
+
+my $maxcols = max map { scalar @$_ } @$data;
+
+my $t = Text::ASCIITable->new();
+my @cols = "A" .. "ZZZ";
+splice(@cols, $maxcols);
+$t->setCols(@cols);
+foreach my $row (@$data) {
+    push(@$row, ("") x ($maxcols - scalar @$row));
+    $t->addRow(@$row);
+}
+print $t;

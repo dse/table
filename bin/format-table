@@ -1,0 +1,36 @@
+#!/usr/bin/env perl
+use warnings;
+use strict;
+use v5.10.0;
+
+use Text::FormatTable;
+use List::Util qw(max);
+use Getopt::Long;
+
+our $opt_tabs = 0;
+
+Getopt::Long::Configure(qw(bundling gnu_compat));
+Getopt::Long::GetOptions(
+    "tabs" => \$opt_tabs
+) or die();
+
+###############################################################################
+
+my $data = [];
+
+while (<>) {
+    s{\R\z}{};
+    if ($opt_tabs) {
+        push(@$data, [split("\t")]);
+    } else {
+        push(@$data, [split]);
+    }
+}
+
+my $maxcols = max map { scalar @$_ } @$data;
+
+my $t = Text::FormatTable->new(join('|', ('l') x $maxcols));
+foreach my $row (@$data) {
+    $t->row(@$row);
+}
+print $t->render();
